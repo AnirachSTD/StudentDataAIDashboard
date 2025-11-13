@@ -28,9 +28,9 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
   const chartTooltipBorder = 'var(--border)';
 
 
-  const { statusData, gpaData, totalStudents, averageGpa, studentsPerYearData, studentsPerCurriculumData, probationData } = useMemo(() => {
+  const { statusData, gpaData, totalStudents, averageGpa, studentsPerYearData, uniqueCurriculums, studentsPerCurriculumData, probationData } = useMemo(() => {
     if (!data || data.length === 0) {
-      return { statusData: [], gpaData: [], totalStudents: 0, averageGpa: 0, studentsPerYearData: [], studentsPerCurriculumData: [], probationData: { total: 0, byCurriculum: [] } };
+      return { statusData: [], gpaData: [], totalStudents: 0, averageGpa: 0, studentsPerYearData: [], uniqueCurriculums: [], studentsPerCurriculumData: [], probationData: { total: 0, byCurriculum: [] } };
     }
 
     const statusCounts = data.reduce((acc: { [key: string]: number }, student) => {
@@ -71,21 +71,40 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
     });
 
     const avgGpa = data.length > 0 ? (totalGpa / data.length) : 0;
+    
+    const uniqueCurriculums = [...new Set(data.map(s => s.curriculum || 'Uncategorized'))].sort();
 
-    const studentsPerYearCounts = data.reduce((acc: { [key: string]: number }, student) => {
-      const year = student.academicYear || 'Uncategorized';
-      acc[year] = (acc[year] || 0) + 1;
-      return acc;
+    const studentsPerYearCounts = data.reduce((acc: { [key: string]: { 'All Curriculums': number; [key: string]: number } }, student) => {
+        const year = student.academicYear || 'Uncategorized';
+        const curriculum = student.curriculum || 'Uncategorized';
+
+        if (!acc[year]) {
+            acc[year] = { 'All Curriculums': 0 };
+            uniqueCurriculums.forEach(c => {
+                acc[year][c] = 0;
+            });
+        }
+
+        acc[year]['All Curriculums']++;
+        acc[year][curriculum]++;
+
+        return acc;
     }, {});
 
-    // FIX: Explicitly type the destructured array from Object.entries to ensure 'students' is a number.
+
+    // FIX: Add explicit type for destructured `counts` to prevent it from being inferred as `unknown`.
     const studentsPerYearChartData = Object.entries(studentsPerYearCounts)
-        .map(([name, students]: [string, number]) => ({ 
-            name, 
-            students,
-            percentage: (data.length > 0 ? (students / data.length) * 100 : 0).toFixed(2)
-        }))
-        .sort((a,b) => a.name.localeCompare(b.name));
+        .map(([year, counts]: [string, { 'All Curriculums': number; [key: string]: number }]) => {
+            const rowData: { [key: string]: string | number } = {
+                name: year,
+                'All Curriculums': counts['All Curriculums']
+            };
+            uniqueCurriculums.forEach(curriculum => {
+                rowData[curriculum] = counts[curriculum] || 0;
+            });
+            return rowData;
+        })
+        .sort((a,b) => (a.name as string).localeCompare(b.name as string));
     
     const studentsPerCurriculumCounts = data.reduce((acc: { [key: string]: number }, student) => {
       const curriculum = student.curriculum || 'Uncategorized';
@@ -118,7 +137,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
         byCurriculum: sortedProbationByCurriculum,
     };
 
-    return { statusData: statusChartData, gpaData: gpaChartData, totalStudents: data.length, averageGpa: avgGpa, studentsPerYearData: studentsPerYearChartData, studentsPerCurriculumData: studentsPerCurriculumChartData, probationData: calculatedProbationData };
+    return { statusData: statusChartData, gpaData: gpaChartData, totalStudents: data.length, averageGpa: avgGpa, studentsPerYearData: studentsPerYearChartData, uniqueCurriculums, studentsPerCurriculumData: studentsPerCurriculumChartData, probationData: calculatedProbationData };
   }, [data]);
 
   return (
@@ -175,7 +194,10 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
           <Card className="lg:col-span-3">
               <CardHeader>
                   <div className="flex justify-between items-center">
-                    <CardTitle>Students per Academic Year (by Sheet)</CardTitle>
+                    <div>
+                      <CardTitle>Students per Academic Year (by Sheet)</CardTitle>
+                      <CardDescription>Total student count and breakdown by curriculum.</CardDescription>
+                    </div>
                     <Button variant="outline" size="sm" onClick={() => setShowYearTable(true)}>
                         <TableIcon className="h-4 w-4 mr-2" />
                         View Data
@@ -190,7 +212,19 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
                           <YAxis allowDecimals={false} stroke={chartTextColor} />
                           <Tooltip contentStyle={{ backgroundColor: chartTooltipBg, borderColor: chartTooltipBorder, color: chartTextColor }} />
                           <Legend wrapperStyle={{ color: chartTextColor }}/>
-                          <Line type="monotone" dataKey="students" stroke={theme === 'dark' ? DARK_COLORS[1] : LIGHT_COLORS[1]} name="Number of Students" strokeWidth={2} activeDot={{ r: 8 }} />
+                          <Line type="monotone" dataKey="All Curriculums" name="All Curriculums" stroke={theme === 'dark' ? DARK_COLORS[1] : LIGHT_COLORS[1]} strokeWidth={2} activeDot={{ r: 8 }} />
+                          {uniqueCurriculums.map((curriculum, index) => (
+                              <Line
+                                  key={curriculum}
+                                  type="monotone"
+                                  dataKey={curriculum}
+                                  name={curriculum}
+                                  stroke={COLORS[(index + 2) % COLORS.length]}
+                                  strokeWidth={1.5}
+                                  strokeDasharray="3 3"
+                                  activeDot={{ r: 6 }}
+                              />
+                          ))}
                       </LineChart>
                   </ResponsiveContainer>
               </CardContent>
@@ -294,8 +328,12 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
 
       <Modal isOpen={showYearTable} onClose={() => setShowYearTable(false)} title="Students per Academic Year Data">
           <DataTable 
-            headers={['Academic Year', 'Number of Students', 'Percentage']}
-            rows={studentsPerYearData.map(d => [d.name, d.students, `${d.percentage}%`])}
+            headers={['Academic Year', 'All Curriculums', ...uniqueCurriculums]}
+            rows={studentsPerYearData.map(d => [
+                d.name, 
+                d['All Curriculums'], 
+                ...uniqueCurriculums.map(c => d[c] || 0)
+            ])}
           />
       </Modal>
 
