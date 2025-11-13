@@ -154,13 +154,13 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload }) => {
                       onDragLeave={handleDragLeave}
                       onDrop={handleDrop}
                     >
-                    <div className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg transition-colors ${isDragging ? 'bg-gray-100 dark:bg-gray-800 border-primary dark:border-blue-500' : 'hover:bg-gray-100 dark:hover:bg-gray-800/50'}`}>
+                    <div className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-border rounded-lg transition-colors ${isDragging ? 'bg-accent border-primary' : 'hover:bg-muted'}`}>
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <UploadIcon className="w-10 h-10 mb-3 text-gray-400 dark:text-gray-500" />
-                            <p className="mb-2 text-sm text-gray-500 dark:text-gray-200">
-                                <span className="font-semibold">Click to upload</span> or drag and drop
+                            <UploadIcon className="w-10 h-10 mb-3 text-muted-foreground" />
+                            <p className="mb-2 text-sm text-muted-foreground">
+                                <span className="font-semibold text-primary">Click to upload</span> or drag and drop
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-200">XLSX, XLS files</p>
+                            <p className="text-xs text-muted-foreground">XLSX, XLS files</p>
                         </div>
                     </div>
                     <input
@@ -173,8 +173,8 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileUpload }) => {
                     />
                     </label>
 
-                    {isProcessing && <p className="text-sm text-gray-600 dark:text-gray-300">Processing file...</p>}
-                    {error && <p className="text-sm text-red-500">{error}</p>}
+                    {isProcessing && <p className="text-sm text-muted-foreground">Processing file...</p>}
+                    {error && <p className="text-sm text-destructive">{error}</p>}
                 </div>
             </CardContent>
         </Card>

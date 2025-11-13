@@ -3,7 +3,7 @@ import React from 'react';
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={`rounded-lg border bg-card text-card-foreground shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200 ${className}`}
+    className={`rounded-lg border bg-card text-card-foreground shadow-sm ${className}`}
     {...props}
   />
 ));
@@ -21,7 +21,7 @@ CardHeader.displayName = 'CardHeader';
 const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={`text-2xl font-semibold leading-none tracking-tight dark:text-gray-50 ${className}`}
+    className={`text-2xl font-semibold leading-none tracking-tight ${className}`}
     {...props}
   />
 ));
@@ -30,7 +30,7 @@ CardTitle.displayName = 'CardTitle';
 const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={`text-sm text-muted-foreground dark:text-gray-300 ${className}`}
+    className={`text-sm text-muted-foreground ${className}`}
     {...props}
   />
 ));

@@ -6,6 +6,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Student Data AI Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --background: oklch(1.0000 0 0);
+        --foreground: oklch(0.3211 0 0);
+        --card: oklch(1.0000 0 0);
+        --card-foreground: oklch(0.3211 0 0);
+        --popover: oklch(1.0000 0 0);
+        --popover-foreground: oklch(0.3211 0 0);
+        --primary: oklch(0.6231 0.1880 259.8145);
+        --primary-foreground: oklch(1.0000 0 0);
+        --secondary: oklch(0.9670 0.0029 264.5419);
+        --secondary-foreground: oklch(0.4461 0.0263 256.8018);
+        --muted: oklch(0.9846 0.0017 247.8389);
+        --muted-foreground: oklch(0.5510 0.0234 264.3637);
+        --accent: oklch(0.9514 0.0250 236.8242);
+        --accent-foreground: oklch(0.3791 0.1378 265.5222);
+        --destructive: oklch(0.6368 0.2078 25.3313);
+        --destructive-foreground: oklch(1.0000 0 0);
+        --border: oklch(0.9276 0.0058 264.5313);
+        --input: oklch(0.9276 0.0058 264.5313);
+        --ring: oklch(0.6231 0.1880 259.8145);
+      }
+
+      .dark {
+        --background: oklch(0.2046 0 0);
+        --foreground: oklch(0.9219 0 0);
+        --card: oklch(0.2686 0 0);
+        --card-foreground: oklch(0.9219 0 0);
+        --popover: oklch(0.2686 0 0);
+        --popover-foreground: oklch(0.9219 0 0);
+        --primary: oklch(0.6231 0.1880 259.8145);
+        --primary-foreground: oklch(1.0000 0 0);
+        --secondary: oklch(0.2686 0 0);
+        --secondary-foreground: oklch(0.9219 0 0);
+        --muted: oklch(0.2393 0 0);
+        --muted-foreground: oklch(0.7155 0 0);
+        --accent: oklch(0.3791 0.1378 265.5222);
+        --accent-foreground: oklch(0.8823 0.0571 254.1284);
+        --destructive: oklch(0.6368 0.2078 25.3313);
+        --destructive-foreground: oklch(1.0000 0 0);
+        --border: oklch(0.3715 0 0);
+        --input: oklch(0.3715 0 0);
+        --ring: oklch(0.6231 0.1880 259.8145);
+      }
+    </style>
     <script>
       // Set theme on initial load to prevent flash of unstyled content
       if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -19,38 +64,38 @@
         theme: {
           extend: {
             colors: {
-              border: "hsl(214.3 31.8% 91.4%)",
-              input: "hsl(214.3 31.8% 91.4%)",
-              ring: "hsl(215 20.2% 65.1%)",
-              background: "hsl(0 0% 100%)",
-              foreground: "hsl(222.2 84% 4.9%)",
+              border: "var(--border)",
+              input: "var(--input)",
+              ring: "var(--ring)",
+              background: "var(--background)",
+              foreground: "var(--foreground)",
               primary: {
-                DEFAULT: "hsl(222.2 47.4% 11.2%)",
-                foreground: "hsl(210 40% 98%)",
+                DEFAULT: "var(--primary)",
+                foreground: "var(--primary-foreground)",
               },
               secondary: {
-                DEFAULT: "hsl(210 40% 96.1%)",
-                foreground: "hsl(222.2 47.4% 11.2%)",
+                DEFAULT: "var(--secondary)",
+                foreground: "var(--secondary-foreground)",
               },
               destructive: {
-                DEFAULT: "hsl(0 84.2% 60.2%)",
-                foreground: "hsl(210 40% 98%)",
+                DEFAULT: "var(--destructive)",
+                foreground: "var(--destructive-foreground)",
               },
               muted: {
-                DEFAULT: "hsl(210 40% 96.1%)",
-                foreground: "hsl(215.4 16.3% 46.9%)",
+                DEFAULT: "var(--muted)",
+                foreground: "var(--muted-foreground)",
               },
               accent: {
-                DEFAULT: "hsl(210 40% 96.1%)",
-                foreground: "hsl(222.2 47.4% 11.2%)",
+                DEFAULT: "var(--accent)",
+                foreground: "var(--accent-foreground)",
               },
               popover: {
-                DEFAULT: "hsl(0 0% 100%)",
-                foreground: "hsl(222.2 84% 4.9%)",
+                DEFAULT: "var(--popover)",
+                foreground: "var(--popover-foreground)",
               },
               card: {
-                DEFAULT: "hsl(0 0% 100%)",
-                foreground: "hsl(222.2 84% 4.9%)",
+                DEFAULT: "var(--card)",
+                foreground: "var(--card-foreground)",
               },
             },
           }
@@ -70,7 +115,7 @@
 }
 </script>
 </head>
-  <body class="bg-secondary/50 dark:bg-gray-950">
+  <body class="bg-background text-foreground">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

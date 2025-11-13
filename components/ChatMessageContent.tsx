@@ -6,22 +6,22 @@ interface TableData {
 }
 
 const TableRenderer: React.FC<{ table: TableData }> = ({ table }) => (
-    <div className="overflow-x-auto my-2 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-800">
+    <div className="overflow-x-auto my-2 rounded-lg border border-border shadow-sm">
+        <table className="min-w-full divide-y divide-border">
+            <thead className="bg-muted/50">
                 <tr>
                     {table.headers.map((header, i) => (
-                        <th key={i} scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                        <th key={i} scope="col" className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                             {header}
                         </th>
                     ))}
                 </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="bg-card divide-y divide-border">
                 {table.rows.map((row, i) => (
-                    <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                    <tr key={i} className="hover:bg-muted/50">
                         {row.map((cell, j) => (
-                            <td key={j} className="px-4 py-3 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">
+                            <td key={j} className="px-4 py-3 whitespace-nowrap text-sm text-card-foreground">
                                 {cell}
                             </td>
                         ))}
@@ -34,7 +34,6 @@ const TableRenderer: React.FC<{ table: TableData }> = ({ table }) => (
 
 const ChatMessageContent: React.FC<{ text: string }> = ({ text }) => {
     const lines = text.split('\n');
-    // Fix: Use React.ReactElement instead of JSX.Element to resolve the "Cannot find namespace 'JSX'" error.
     const elements: React.ReactElement[] = [];
     let tableLines: string[] = [];
     let keyIndex = 0;

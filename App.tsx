@@ -42,25 +42,25 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans">
-      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
+    <div className="min-h-screen bg-background text-foreground font-sans">
+      <header className="bg-card border-b border-border shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-3">
-            <BotIcon className="h-8 w-8 text-primary dark:text-primary-foreground" />
-            <h1 className="text-2xl font-bold text-primary dark:text-primary-foreground">Student Data AI Dashboard</h1>
+            <BotIcon className="h-8 w-8 text-primary" />
+            <h1 className="text-2xl font-bold text-foreground">Student Data AI Dashboard</h1>
           </div>
           <div className="flex items-center space-x-4">
             {studentData.length > 0 && (
               <button
                 onClick={handleReset}
-                className="px-4 py-2 bg-secondary dark:bg-gray-800 text-secondary-foreground dark:text-gray-200 hover:bg-secondary/80 dark:hover:bg-gray-700 rounded-md text-sm font-medium transition-colors"
+                className="px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md text-sm font-medium transition-colors"
               >
                 Upload New File
               </button>
             )}
              <button
               onClick={toggleTheme}
-              className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-2 rounded-full text-muted-foreground hover:bg-accent transition-colors"
               aria-label="Toggle theme"
             >
               {theme === 'light' ? <MoonIcon className="h-5 w-5" /> : <SunIcon className="h-5 w-5" />}
@@ -75,7 +75,7 @@ const App: React.FC = () => {
         ) : (
           <div className="space-y-8">
             <div>
-                <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-100">Analytics for <span className="text-primary dark:text-blue-400 font-bold">{fileName}</span></h2>
+                <h2 className="text-xl font-semibold text-foreground">Analytics for <span className="text-primary font-bold">{fileName}</span></h2>
             </div>
             <Dashboard data={studentData} theme={theme} />
             <Chat data={studentData} />
@@ -83,7 +83,7 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <footer className="text-center py-4 text-sm text-gray-500 dark:text-gray-400">
+      <footer className="text-center py-4 text-sm text-muted-foreground">
         <p>Powered by Anirach Mingkhwan CreativeLab-FITM</p>
       </footer>
     </div>

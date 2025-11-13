@@ -1,13 +1,8 @@
 import { GoogleGenAI } from '@google/genai';
 import { Student } from '../types';
 
-const API_KEY = process.env.API_KEY;
-
-if (!API_KEY) {
-  throw new Error("API_KEY environment variable not set.");
-}
-
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+// FIX: Per coding guidelines, initialize GoogleGenAI with process.env.API_KEY directly.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
 // A simple precaution to avoid sending excessively large datasets.
 const MAX_STUDENTS_FOR_CONTEXT = 500;

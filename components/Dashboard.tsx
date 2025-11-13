@@ -12,7 +12,8 @@ interface DashboardProps {
   theme: 'light' | 'dark';
 }
 
-const COLORS = ['#0088FE', '#AF19FF', '#FF1943', '#FF8042', '#FFBB28', '#00C49F', '#22C55E', '#F97316', '#A855F7', '#EC4899', '#84CC16', '#14B8A6'];
+const LIGHT_COLORS = ['oklch(0.6231 0.1880 259.8145)', 'oklch(0.5461 0.2152 262.8809)', 'oklch(0.4882 0.2172 264.3763)', 'oklch(0.4244 0.1809 265.6377)', 'oklch(0.3791 0.1378 265.5222)', 'oklch(0.6368 0.2078 25.3313)'];
+const DARK_COLORS = ['oklch(0.7137 0.1434 254.6240)', 'oklch(0.6231 0.1880 259.8145)', 'oklch(0.5461 0.2152 262.8809)', 'oklch(0.4882 0.2172 264.3763)', 'oklch(0.4244 0.1809 265.6377)', 'oklch(0.6368 0.2078 25.3313)'];
 
 const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
   const [showYearTable, setShowYearTable] = useState(false);
@@ -20,10 +21,11 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
   const [showStatusTable, setShowStatusTable] = useState(false);
   const [showCurriculumTable, setShowCurriculumTable] = useState(false);
 
-  const chartTextColor = theme === 'dark' ? '#e5e7eb' : '#6b7281';
-  const chartGridColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#e5e7eb';
-  const chartTooltipBg = theme === 'dark' ? '#1f2937' : '#ffffff';
-  const chartTooltipBorder = theme === 'dark' ? '#374151' : '#e5e7eb';
+  const COLORS = theme === 'dark' ? DARK_COLORS : LIGHT_COLORS;
+  const chartTextColor = 'var(--foreground)';
+  const chartGridColor = 'var(--border)';
+  const chartTooltipBg = 'var(--card)';
+  const chartTooltipBorder = 'var(--border)';
 
 
   const { statusData, gpaData, totalStudents, averageGpa, studentsPerYearData, studentsPerCurriculumData, probationData } = useMemo(() => {
@@ -31,13 +33,13 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
       return { statusData: [], gpaData: [], totalStudents: 0, averageGpa: 0, studentsPerYearData: [], studentsPerCurriculumData: [], probationData: { total: 0, byCurriculum: [] } };
     }
 
-    // FIX: Explicitly type the accumulator for the reduce function to ensure TypeScript correctly infers the return type as an object with string keys and number values.
     const statusCounts = data.reduce((acc: { [key: string]: number }, student) => {
       acc[student.status] = (acc[student.status] || 0) + 1;
       return acc;
     }, {});
 
-    const statusChartData = Object.entries(statusCounts).map(([name, value]) => ({
+    // FIX: Explicitly type the destructured array from Object.entries to ensure 'value' is a number.
+    const statusChartData = Object.entries(statusCounts).map(([name, value]: [string, number]) => ({
         name,
         value,
         percentage: (data.length > 0 ? (value / data.length) * 100 : 0).toFixed(2),
@@ -64,57 +66,52 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
         return { 
             name, 
             students,
-            // FIX: The 'students' variable is now correctly inferred as a number, allowing this arithmetic operation.
             percentage: (data.length > 0 ? (students / data.length) * 100 : 0).toFixed(2)
         };
     });
 
     const avgGpa = data.length > 0 ? (totalGpa / data.length) : 0;
 
-    // FIX: Explicitly type the accumulator for the reduce function to ensure TypeScript correctly infers the return type as an object with string keys and number values.
     const studentsPerYearCounts = data.reduce((acc: { [key: string]: number }, student) => {
       const year = student.academicYear || 'Uncategorized';
       acc[year] = (acc[year] || 0) + 1;
       return acc;
     }, {});
 
+    // FIX: Explicitly type the destructured array from Object.entries to ensure 'students' is a number.
     const studentsPerYearChartData = Object.entries(studentsPerYearCounts)
-        .map(([name, students]) => ({ 
+        .map(([name, students]: [string, number]) => ({ 
             name, 
             students,
-            // FIX: The 'students' variable is now correctly inferred as a number, allowing this arithmetic operation.
             percentage: (data.length > 0 ? (students / data.length) * 100 : 0).toFixed(2)
         }))
         .sort((a,b) => a.name.localeCompare(b.name));
     
-    // FIX: Explicitly type the accumulator for the reduce function to ensure TypeScript correctly infers the return type as an object with string keys and number values.
     const studentsPerCurriculumCounts = data.reduce((acc: { [key: string]: number }, student) => {
       const curriculum = student.curriculum || 'Uncategorized';
       acc[curriculum] = (acc[curriculum] || 0) + 1;
       return acc;
     }, {});
 
+    // FIX: Explicitly type the destructured array from Object.entries to ensure 'students' is a number. This also fixes the sort on line 102.
     const studentsPerCurriculumChartData = Object.entries(studentsPerCurriculumCounts)
-        .map(([name, students]) => {
+        .map(([name, students]: [string, number]) => {
             return {
                 name, 
                 students,
-                // FIX: The 'students' variable is now correctly inferred as a number, allowing this arithmetic operation.
                 percentage: (data.length > 0 ? (students / data.length) * 100 : 0).toFixed(2)
             };
         })
-        // FIX: The 'students' property is now correctly typed as a number, allowing for correct sorting.
         .sort((a,b) => b.students - a.students);
 
-    const probationStudents = data.filter(student => student.gpax < 2.0);
-    // FIX: Explicitly type the accumulator for the reduce function to ensure the value type is number.
+    const probationStudents = data.filter(student => student.gpax < 2.0 && student.status === 'ปกติ');
     const probationByCurriculum = probationStudents.reduce((acc: { [key: string]: number }, student) => {
         const curriculum = student.curriculum || 'Uncategorized';
         acc[curriculum] = (acc[curriculum] || 0) + 1;
         return acc;
     }, {});
-    // FIX: Values from Object.entries are now correctly typed as numbers, allowing for correct sorting.
-    const sortedProbationByCurriculum = Object.entries(probationByCurriculum).sort((a, b) => b[1] - a[1]);
+    // FIX: Explicitly type sort parameters to ensure array elements are treated as numbers.
+    const sortedProbationByCurriculum = Object.entries(probationByCurriculum).sort((a: [string, number], b: [string, number]) => b[1] - a[1]);
 
     const calculatedProbationData = {
         total: probationStudents.length,
@@ -140,7 +137,6 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
                   <CardTitle>Average GPAX</CardTitle>
               </CardHeader>
               <CardContent>
-                  {/* FIX: Format the averageGpa number to a string with 2 decimal places for display. Ensure it's a number before calling toFixed. */}
                   <p className="text-4xl font-bold">{Number(averageGpa).toFixed(2)}</p>
               </CardContent>
           </Card>
@@ -155,20 +151,20 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
           <Card>
               <CardHeader className="pb-2">
                   <CardTitle>Probation Students</CardTitle>
-                  <CardDescription className="text-xs">Students with GPAX &lt; 2.0</CardDescription>
+                  <CardDescription className="text-xs">Status "ปกติ" &amp; GPAX &lt; 2.0</CardDescription>
               </CardHeader>
               <CardContent>
                   <p className="text-4xl font-bold">{probationData.total}</p>
                   <div className="mt-2 space-y-1">
                       {probationData.byCurriculum.length > 0 ? (
                           probationData.byCurriculum.slice(0, 5).map(([curriculum, count]) => (
-                              <div key={curriculum} className="flex justify-between items-center text-sm">
-                                  <span className="text-muted-foreground dark:text-gray-400 truncate" title={curriculum}>{curriculum}</span>
+                              <div key={curriculum as string} className="flex justify-between items-center text-sm">
+                                  <span className="text-muted-foreground truncate" title={curriculum as string}>{curriculum}</span>
                                   <span className="font-medium flex-shrink-0 ml-2">{count}</span>
                               </div>
                           ))
                       ) : (
-                          <p className="text-sm text-muted-foreground dark:text-gray-400">No students on probation.</p>
+                          <p className="text-sm text-muted-foreground">No students on probation.</p>
                       )}
                   </div>
               </CardContent>
@@ -192,9 +188,9 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
                           <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
                           <XAxis dataKey="name" stroke={chartTextColor} />
                           <YAxis allowDecimals={false} stroke={chartTextColor} />
-                          <Tooltip contentStyle={{ backgroundColor: chartTooltipBg, borderColor: chartTooltipBorder }} />
+                          <Tooltip contentStyle={{ backgroundColor: chartTooltipBg, borderColor: chartTooltipBorder, color: chartTextColor }} />
                           <Legend wrapperStyle={{ color: chartTextColor }}/>
-                          <Line type="monotone" dataKey="students" stroke="#82ca9d" name="Number of Students" strokeWidth={2} activeDot={{ r: 8 }} />
+                          <Line type="monotone" dataKey="students" stroke={theme === 'dark' ? DARK_COLORS[1] : LIGHT_COLORS[1]} name="Number of Students" strokeWidth={2} activeDot={{ r: 8 }} />
                       </LineChart>
                   </ResponsiveContainer>
               </CardContent>
@@ -227,7 +223,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
                               ))}
                           </Pie>
                           <Tooltip
-                            contentStyle={{ backgroundColor: chartTooltipBg, borderColor: chartTooltipBorder }}
+                            contentStyle={{ backgroundColor: chartTooltipBg, borderColor: chartTooltipBorder, color: chartTextColor }}
                             formatter={(value: number, name: string, props: any) => {
                                 const percentage = props.payload.percentage;
                                 return [`${value} (${percentage}%)`, name];
@@ -239,7 +235,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
                     {statusData.map((entry, index) => (
                         <div key={`legend-${index}`} className="flex items-center text-sm">
                             <span
-                                className="h-3 w-3 mr-2"
+                                className="h-3 w-3 mr-2 rounded-sm"
                                 style={{ backgroundColor: COLORS[index % COLORS.length] }}
                             />
                             <span>{`${entry.name} (${entry.value} / ${entry.percentage}%)`}</span>
@@ -260,13 +256,13 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
               </CardHeader>
               <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={gpaData} margin={{ top: 5, right: 20, left: -10, bottom: 55 }}>
+                      <BarChart data={gpaData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
                           <XAxis dataKey="name" stroke={chartTextColor} />
                           <YAxis stroke={chartTextColor} />
-                          <Tooltip contentStyle={{ backgroundColor: chartTooltipBg, borderColor: chartTooltipBorder }} />
+                          <Tooltip contentStyle={{ backgroundColor: chartTooltipBg, borderColor: chartTooltipBorder, color: chartTextColor }} />
                           <Legend wrapperStyle={{ color: chartTextColor }}/>
-                          <Bar dataKey="students" fill="#0088FE" />
+                          <Bar dataKey="students" fill={theme === 'dark' ? DARK_COLORS[0] : LIGHT_COLORS[0]} />
                       </BarChart>
                   </ResponsiveContainer>
               </CardContent>
@@ -287,9 +283,9 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
                           <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
                           <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} height={80} stroke={chartTextColor} />
                           <YAxis allowDecimals={false} stroke={chartTextColor} />
-                          <Tooltip contentStyle={{ backgroundColor: chartTooltipBg, borderColor: chartTooltipBorder }} />
+                          <Tooltip contentStyle={{ backgroundColor: chartTooltipBg, borderColor: chartTooltipBorder, color: chartTextColor }} />
                           <Legend wrapperStyle={{ color: chartTextColor }} />
-                          <Bar dataKey="students" fill="#A855F7" name="Number of Students" />
+                          <Bar dataKey="students" fill={theme === 'dark' ? DARK_COLORS[2] : LIGHT_COLORS[2]} name="Number of Students" />
                       </BarChart>
                   </ResponsiveContainer>
               </CardContent>
