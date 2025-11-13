@@ -1,0 +1,5 @@
+{
+  "name": "Student Data AI Dashboard",
+  "description": "An interactive dashboard to upload, visualize, and chat with student data from Excel files. The application uses the Gemini API to provide natural language querying of the dataset.",
+  "requestFramePermissions": []
+}
