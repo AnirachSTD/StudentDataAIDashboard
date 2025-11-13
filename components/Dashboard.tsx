@@ -12,8 +12,9 @@ interface DashboardProps {
   theme: 'light' | 'dark';
 }
 
-const LIGHT_COLORS = ['oklch(0.6231 0.1880 259.8145)', 'oklch(0.5461 0.2152 262.8809)', 'oklch(0.4882 0.2172 264.3763)', 'oklch(0.4244 0.1809 265.6377)', 'oklch(0.3791 0.1378 265.5222)', 'oklch(0.6368 0.2078 25.3313)'];
-const DARK_COLORS = ['oklch(0.7137 0.1434 254.6240)', 'oklch(0.6231 0.1880 259.8145)', 'oklch(0.5461 0.2152 262.8809)', 'oklch(0.4882 0.2172 264.3763)', 'oklch(0.4244 0.1809 265.6377)', 'oklch(0.6368 0.2078 25.3313)'];
+const LIGHT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6', '#ec4899', '#6366f1', '#d946ef', '#22c55e'];
+const DARK_COLORS = ['#60a5fa', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#2dd4bf', '#f472b6', '#818cf8', '#e879f9', '#4ade80'];
+
 
 const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
   const [showYearTable, setShowYearTable] = useState(false);
@@ -38,49 +39,60 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
       return acc;
     }, {});
 
-    // FIX: Explicitly type the destructured array from Object.entries to ensure 'value' is a number.
     const statusChartData = Object.entries(statusCounts).map(([name, value]: [string, number]) => ({
         name,
         value,
         percentage: (data.length > 0 ? (value / data.length) * 100 : 0).toFixed(2),
     }));
     
-    const gpaBuckets: { [key: string]: number } = {
-        '< 2.0': 0,
-        '2.0-2.49': 0,
-        '2.5-2.99': 0,
-        '3.0-3.49': 0,
-        '>= 3.5': 0,
+    const uniqueCurriculums = [...new Set(data.map(s => s.curriculum || 'Uncategorized'))].sort();
+
+    const gpaBuckets: { [key: string]: { [key: string]: number, total: number } } = {
+        '< 2.0': { total: 0 },
+        '2.0-2.49': { total: 0 },
+        '2.5-2.99': { total: 0 },
+        '3.0-3.49': { total: 0 },
+        '>= 3.5': { total: 0 },
     };
+    // FIX: Explicitly type `c` as string to avoid type inference issues.
+    uniqueCurriculums.forEach((c: string) => {
+        Object.keys(gpaBuckets).forEach(bucket => {
+            gpaBuckets[bucket][c] = 0;
+        });
+    });
+
     let totalGpa = 0;
     data.forEach(student => {
         totalGpa += student.gpax;
-        if(student.gpax < 2.0) gpaBuckets['< 2.0']++;
-        else if(student.gpax < 2.5) gpaBuckets['2.0-2.49']++;
-        else if(student.gpax < 3.0) gpaBuckets['2.5-2.99']++;
-        else if(student.gpax < 3.5) gpaBuckets['3.0-3.49']++;
-        else gpaBuckets['>= 3.5']++;
+        const curriculum = student.curriculum || 'Uncategorized';
+        let bucket = '';
+        if(student.gpax < 2.0) bucket = '< 2.0';
+        else if(student.gpax < 2.5) bucket = '2.0-2.49';
+        else if(student.gpax < 3.0) bucket = '2.5-2.99';
+        else if(student.gpax < 3.5) bucket = '3.0-3.49';
+        else bucket = '>= 3.5';
+        
+        gpaBuckets[bucket][curriculum]++;
+        gpaBuckets[bucket].total++;
     });
 
-    const gpaChartData = Object.entries(gpaBuckets).map(([name, students]) => {
+    const gpaChartData = Object.entries(gpaBuckets).map(([name, counts]) => {
         return { 
             name, 
-            students,
-            percentage: (data.length > 0 ? (students / data.length) * 100 : 0).toFixed(2)
+            ...counts
         };
     });
 
     const avgGpa = data.length > 0 ? (totalGpa / data.length) : 0;
     
-    const uniqueCurriculums = [...new Set(data.map(s => s.curriculum || 'Uncategorized'))].sort();
-
     const studentsPerYearCounts = data.reduce((acc: { [key: string]: { 'All Curriculums': number; [key: string]: number } }, student) => {
         const year = student.academicYear || 'Uncategorized';
         const curriculum = student.curriculum || 'Uncategorized';
 
         if (!acc[year]) {
             acc[year] = { 'All Curriculums': 0 };
-            uniqueCurriculums.forEach(c => {
+            // FIX: Explicitly type `c` as string to avoid type inference issues.
+            uniqueCurriculums.forEach((c: string) => {
                 acc[year][c] = 0;
             });
         }
@@ -91,15 +103,14 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
         return acc;
     }, {});
 
-
-    // FIX: Add explicit type for destructured `counts` to prevent it from being inferred as `unknown`.
     const studentsPerYearChartData = Object.entries(studentsPerYearCounts)
         .map(([year, counts]: [string, { 'All Curriculums': number; [key: string]: number }]) => {
             const rowData: { [key: string]: string | number } = {
                 name: year,
                 'All Curriculums': counts['All Curriculums']
             };
-            uniqueCurriculums.forEach(curriculum => {
+            // FIX: Explicitly type `curriculum` as string to avoid type inference issues.
+            uniqueCurriculums.forEach((curriculum: string) => {
                 rowData[curriculum] = counts[curriculum] || 0;
             });
             return rowData;
@@ -112,7 +123,6 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
       return acc;
     }, {});
 
-    // FIX: Explicitly type the destructured array from Object.entries to ensure 'students' is a number. This also fixes the sort on line 102.
     const studentsPerCurriculumChartData = Object.entries(studentsPerCurriculumCounts)
         .map(([name, students]: [string, number]) => {
             return {
@@ -129,7 +139,6 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
         acc[curriculum] = (acc[curriculum] || 0) + 1;
         return acc;
     }, {});
-    // FIX: Explicitly type sort parameters to ensure array elements are treated as numbers.
     const sortedProbationByCurriculum = Object.entries(probationByCurriculum).sort((a: [string, number], b: [string, number]) => b[1] - a[1]);
 
     const calculatedProbationData = {
@@ -281,7 +290,10 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
           <Card className="lg:col-span-2">
               <CardHeader>
                   <div className="flex justify-between items-center">
-                    <CardTitle>GPAX Distribution</CardTitle>
+                    <div>
+                        <CardTitle>GPAX Distribution</CardTitle>
+                        <CardDescription>Stacked by curriculum.</CardDescription>
+                    </div>
                     <Button variant="outline" size="sm" onClick={() => setShowGpaTable(true)}>
                         <TableIcon className="h-4 w-4 mr-2" />
                         View Data
@@ -293,10 +305,18 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
                       <BarChart data={gpaData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
                           <XAxis dataKey="name" stroke={chartTextColor} />
-                          <YAxis stroke={chartTextColor} />
+                          <YAxis stroke={chartTextColor} allowDecimals={false} />
                           <Tooltip contentStyle={{ backgroundColor: chartTooltipBg, borderColor: chartTooltipBorder, color: chartTextColor }} />
                           <Legend wrapperStyle={{ color: chartTextColor }}/>
-                          <Bar dataKey="students" fill={theme === 'dark' ? DARK_COLORS[0] : LIGHT_COLORS[0]} />
+                          {uniqueCurriculums.map((curriculum, index) => (
+                              <Bar 
+                                key={curriculum} 
+                                dataKey={curriculum} 
+                                stackId="a" 
+                                fill={COLORS[index % COLORS.length]} 
+                                name={curriculum} 
+                              />
+                          ))}
                       </BarChart>
                   </ResponsiveContainer>
               </CardContent>
@@ -332,15 +352,21 @@ const Dashboard: React.FC<DashboardProps> = ({ data, theme }) => {
             rows={studentsPerYearData.map(d => [
                 d.name, 
                 d['All Curriculums'], 
-                ...uniqueCurriculums.map(c => d[c] || 0)
+                // FIX: Explicitly type `c` as string to avoid type inference issues.
+                ...uniqueCurriculums.map((c: string) => d[c] || 0)
             ])}
           />
       </Modal>
 
       <Modal isOpen={showGpaTable} onClose={() => setShowGpaTable(false)} title="GPAX Distribution Data">
           <DataTable 
-            headers={['GPAX Range', 'Number of Students', 'Percentage']}
-            rows={gpaData.map(d => [d.name, d.students, `${d.percentage}%`])}
+            headers={['GPAX Range', ...uniqueCurriculums, 'Total']}
+            rows={gpaData.map(d => [
+                d.name,
+                // FIX: Explicitly type `c` as string to avoid type inference issues.
+                ...uniqueCurriculums.map((c: string) => d[c] || 0),
+                d.total
+            ])}
           />
       </Modal>
 
